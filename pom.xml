@@ -110,6 +110,13 @@
             <artifactId>poi</artifactId>
             <version>3.17</version>
         </dependency>
+        <!-- OOXML - Excel 2007 Support -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+        </dependency>
+
 
         <!-- Gson -->
         <dependency>

@@ -8,7 +8,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication
-@EnableWebMvc
+
 @MapperScan("com.azureip.tmspider.mapper")
 public class Application extends SpringBootServletInitializer {
 
