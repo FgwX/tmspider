@@ -35,17 +35,17 @@ import java.net.UnknownHostException;
  */
 public class HttpUtil {
 
-    private static CloseableHttpClient httpclient = null;
+    private static CloseableHttpClient client = null;
 
     // 这里就直接默认固定了,因为以下三个参数在新建的method中仍然可以重新配置并被覆盖
-    private static final int connectionRequestTimeout = 5000;// ms毫秒,从池中获取链接超时时间
-    private static final int connectTimeout = 5000;// ms毫秒,建立链接超时时间
-    private static final int socketTimeout = 30000;// ms毫秒,读取超时时间
+    private static final int CON_REQ_TIMEOUT = 5000;// ms毫秒,从池中获取链接超时时间
+    private static final int CON_TIMEOUT = 5000;// ms毫秒,建立链接超时时间
+    private static final int SOCKET_TIMEOUT = 30000;// ms毫秒,读取超时时间
 
     /* 总配置,主要涉及是以下两个参数,如果要作调整没有用到properties会比较后麻烦,但鉴于一经粘贴,随处可用的特点,就不再做依赖性配置化处理了
     而且这个参数同一家公司基本不会变动 */
-    private static final int maxTotal = 500;// 最大总并发,很重要的参数
-    private static final int maxPerRoute = 100;// 每路并发,很重要的参数
+    private static final int MAX_TOTAL = 500;// 最大总并发,很重要的参数
+    private static final int MAX_PER_ROUTE = 100;// 每路并发,很重要的参数
 
     // 正常情况这里应该配成MAP或LIST
     // 细化配置参数,用来对每路参数做精细化处理,可以管控各ip的流量,比如默认配置请求baidu:80端口最大100个并发链接,
@@ -54,14 +54,14 @@ public class HttpUtil {
     private static final int detailMaxPerRoute = 100;// 每个细化配置之最大并发数(不重要,在特殊场景很有用)
 
     public static CloseableHttpClient getHttpClient() {
-        if (null == httpclient) {
+        if (null == client) {
             synchronized (HttpUtil.class) {
-                if (null == httpclient) {
-                    httpclient = init();
+                if (null == client) {
+                    client = init();
                 }
             }
         }
-        return httpclient;
+        return client;
     }
 
     /* 链接池初始化 这里最重要的一点理解就是. 让CloseableHttpClient 一直活在池的世界里, 但是HttpPost却一直用完就消掉
@@ -75,9 +75,9 @@ public class HttpUtil {
         Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("http", httpSocketFactory).register("https", httpsSocketFactory).build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(registry);
         // 将最大连接数增加
-        connectionManager.setMaxTotal(maxTotal);
+        connectionManager.setMaxTotal(MAX_TOTAL);
         // 将每个路由基础的连接增加
-        connectionManager.setDefaultMaxPerRoute(maxPerRoute);
+        connectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
 
         // 细化配置开始,其实这里用Map或List的for循环来配置每个链接,在特殊场景很有用.
         // 将每个路由基础的连接做特殊化配置,一般用不着
@@ -127,7 +127,7 @@ public class HttpUtil {
         };
 
         // 配置请求的超时设置
-        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(connectionRequestTimeout).setConnectTimeout(connectTimeout).setSocketTimeout(socketTimeout).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(CON_REQ_TIMEOUT).setConnectTimeout(CON_TIMEOUT).setSocketTimeout(SOCKET_TIMEOUT).build();
         newHttpclient = HttpClients.custom().setConnectionManager(connectionManager).setDefaultRequestConfig(requestConfig).setRetryHandler(httpRequestRetryHandler).build();
         return newHttpclient;
     }

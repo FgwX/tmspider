@@ -8,12 +8,14 @@ import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +35,7 @@ public class AnnController {
     // RequestHeader: User-Agent
     private static final String AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36";
     // Page size
-    private static final int PAGE_SIZE = 10000;
+    private static final int PAGE_SIZE = 1000;
     // Gson
     private static Gson gson = new Gson();
 
@@ -44,7 +46,8 @@ public class AnnController {
 
     @GetMapping("firstTrial")
     public String firstTrial() throws IOException {
-        CloseableHttpClient countClient = HttpPoolUtil.getConnection();
+        CloseableHttpClient client = HttpClients.createDefault();
+        RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(2000).setConnectTimeout(3000).setSocketTimeout(30000).build();
         HttpPost countPost = new HttpPost("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html?page=1&rows=2&annNum=1595&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
         // countPost.setHeader("Accept","application/json, text/javascript, */*; q=0.01");
         // countPost.setHeader("Accept-Encoding","gzip, deflate");
@@ -56,21 +59,22 @@ public class AnnController {
         // countPost.setHeader("Referer","http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearch.html?annNum=");
         // countPost.setHeader("X-Requested-With","XMLHttpRequest");
         countPost.setHeader("User-Agent", AGENT);
-        CloseableHttpResponse countResp = countClient.execute(countPost);
-        countClient.close();
+        countPost.setConfig(config);
+        CloseableHttpResponse countResp = client.execute(countPost);
         AnnoucementListPojo countPojo = gson.fromJson(EntityUtils.toString(countResp.getEntity()), AnnoucementListPojo.class);
         int times = (int) Math.ceil(countPojo.getTotal() / Double.valueOf(PAGE_SIZE));
         int successCount = 0;
-        DefaultHttpClient client = new DefaultHttpClient();
         for (int i = 0; i < times; i++) {
             StringBuffer url = new StringBuffer("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html");
             url.append("?page=" + i);
-            url.append("&rows=" + 10);
+            url.append("&rows=" + PAGE_SIZE);
             url.append("&annNum=" + 1595);
             url.append("&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
             HttpPost post = new HttpPost(url.toString());
             post.setHeader("User-Agent", AGENT);
-            HttpResponse resp = client.execute(post);
+            post.setHeader("Connection", "keep-alive");
+            post.setConfig(config);
+            CloseableHttpResponse resp = client.execute(post);
             AnnoucementListPojo listPojo = gson.fromJson(EntityUtils.toString(resp.getEntity()), AnnoucementListPojo.class);
             for (AnnoucementPojo pojo : listPojo.getRows()) {
                 int result = annService.save(pojo);
@@ -82,7 +86,7 @@ public class AnnController {
                 }
             }
         }
-//        client.close();
+        client.close();
         System.out.println("Total Success: " + successCount);
         return "Insert Data Size: " + successCount;
     }
