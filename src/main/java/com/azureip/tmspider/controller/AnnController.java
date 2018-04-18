@@ -19,9 +19,12 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,7 +32,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("ann")
 public class AnnController {
 
     @Autowired
@@ -40,11 +42,6 @@ public class AnnController {
     private static final int PAGE_SIZE = 10000;
     // Gson
     private static Gson gson = new Gson();
-
-    @GetMapping("test")
-    public String test() {
-        return "OK!";
-    }
 
     @GetMapping("firstTrial")
     public String firstTrial() throws IOException {
