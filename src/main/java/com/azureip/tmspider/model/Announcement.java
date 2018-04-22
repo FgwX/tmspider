@@ -3,6 +3,9 @@ package com.azureip.tmspider.model;
 import java.util.Date;
 
 public class Announcement {
+    public Announcement() {
+    }
+
     public Announcement(String id, Integer pageNo, String annTypeCode, String annType, String annNum, Date annDate, String regName, String regNum, String tmName) {
         this.id = id;
         this.pageNo = pageNo;
@@ -103,5 +106,20 @@ public class Announcement {
 
     public void setTmName(String tmName) {
         this.tmName = tmName == null ? null : tmName.trim();
+    }
+
+    @Override
+    public String toString() {
+        return "Announcement{" +
+                "id='" + id + '\'' +
+                ", pageNo=" + pageNo +
+                ", annTypeCode='" + annTypeCode + '\'' +
+                ", annType='" + annType + '\'' +
+                ", annNum='" + annNum + '\'' +
+                ", annDate=" + annDate +
+                ", regName='" + regName + '\'' +
+                ", regNum='" + regNum + '\'' +
+                ", tmName='" + tmName + '\'' +
+                '}';
     }
 }

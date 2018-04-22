@@ -2,14 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>公告数据导入 - TMSpider</title>
+    <title>初审公告导入 - TMSpider</title>
 </head>
 <body>
-<form id="annImportForm" action="/test.do" method="post">
-    公告期号：<input id="annNum" name="annNum" type="number" /><br>
-    开始日期：<input id="startDate" class="" name="appDateBegin" type="date" value="2018-01-01"/>
-    结束日期：<input id="endDate" class="" name="appDateEnd" type="date" value="2018-02-02"/>
-    <input type="submit" name="提交">
+<h4>初审公告导入</h4>
+<hr>
+<form id="annImportForm" action="/ann/importConfirm" method="post" >
+    <input name="p.page" type="number" value="1" style="display: none"/>
+    <input name="p.rows" type="number" value="1" style="display: none"/>
+
+    公告期号：<input name="p.annNum" type="number"/><br>
+    公告类型：<select name="p.annType">
+        <option label="商标初审公告" value="TMZCSQ" selected/>
+    </select><br>
+    开始日期：<input name="p.appDateBegin" type="date" value="2018-01-01"/>
+    结束日期：<input name="p.appDateEnd" type="date" value="2018-02-02"/><br>
+    <input type="reset" value="重置表单"/>     <input type="submit" value="查询导入"/>
 </form>
 </body>
 </html>

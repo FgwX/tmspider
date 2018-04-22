@@ -1,7 +1,10 @@
 package com.azureip.tmspider.controller;
 
+import com.azureip.tmspider.model.Announcement;
+import com.azureip.tmspider.pojo.AnnQueryPojo;
 import com.azureip.tmspider.pojo.AnnoucementListPojo;
 import com.azureip.tmspider.pojo.AnnoucementPojo;
+import com.azureip.tmspider.pojo.GlobalResponse;
 import com.azureip.tmspider.service.AnnService;
 import com.google.gson.Gson;
 import org.apache.http.client.config.RequestConfig;
@@ -20,18 +23,14 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.List;
 
-@RestController
+@Controller
+@RequestMapping("ann")
 public class AnnController {
 
     @Autowired
@@ -43,11 +42,31 @@ public class AnnController {
     // Gson
     private static Gson gson = new Gson();
 
-    @GetMapping("firstTrial")
-    public String firstTrial() throws IOException {
+    /**
+     * 查询公告总量
+     * @param p
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "importConfirm", method = RequestMethod.POST)
+    public GlobalResponse importConfirm(AnnQueryPojo p) {
+        GlobalResponse<AnnQueryPojo> response = new GlobalResponse<AnnQueryPojo>();
+        String s = gson.toJson(p);
+        System.out.println(s);
+        response.setResult(p);
+        return response;
+    }
+
+    /**
+     * 查询公告数据，并导入数据库。
+     * @return
+     * @throws IOException
+     */
+    @GetMapping("importFirstTrialAnns")
+    public String importFirstTrialAnns() throws IOException {
         CloseableHttpClient client = HttpClients.createDefault();
         RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(2000).setConnectTimeout(3000).setSocketTimeout(30000).build();
-        HttpPost countPost = new HttpPost("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html?page=1&rows=2&annNum=1595&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
+        HttpPost countPost = new HttpPost("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html?page=1&rows=1&annNum=1596&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
         // countPost.setHeader("Accept","application/json, text/javascript, */*; q=0.01");
         // countPost.setHeader("Accept-Encoding","gzip, deflate");
         // countPost.setHeader("Accept-Language","zh-CN,zh;q=0.9,en;q=0.8");
@@ -62,17 +81,12 @@ public class AnnController {
         CloseableHttpResponse countResp = client.execute(countPost);
         AnnoucementListPojo countPojo = gson.fromJson(EntityUtils.toString(countResp.getEntity()), AnnoucementListPojo.class);
         int times = (int) Math.ceil(countPojo.getTotal() / Double.valueOf(PAGE_SIZE));
-        System.out.println("==========>>>>>>>>>> Total Pages : " + times);
-        System.out.println("==========>>>>>>>>>> Total Pages : " + times);
-        System.out.println("==========>>>>>>>>>> Total Pages : " + times);
-        System.out.println("==========>>>>>>>>>> Total Pages : " + times);
-        System.out.println("==========>>>>>>>>>> Total Pages : " + times);
         int successCount = 0;
         for (int i = 0; i < times; i++) {
             StringBuffer url = new StringBuffer("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html");
             url.append("?page=" + (i + 1));
             url.append("&rows=" + PAGE_SIZE);
-            url.append("&annNum=" + 1595);
+            url.append("&annNum=" + 1596);
             url.append("&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
             HttpPost post = new HttpPost(url.toString());
             post.setHeader("User-Agent", AGENT);
@@ -95,40 +109,54 @@ public class AnnController {
         return "Insert Data Size: " + successCount;
     }
 
-    @GetMapping("excelTest")
-    public String excelTest() throws IOException {
-        /*
-        HSSFWorkbook    excel文档对象
-        HSSFSheet       excel的sheet
-        HSSFRow         excel的行
-        HSSFCell        excel的单元格
-        HSSFFont        excel字体
-        HSSFName        名称
-        HSSFDataFormat  日期格式
-        HSSFHeader      sheet头
-        HSSFFooter      sheet尾
-        HSSFCellStyle   cell样式
-        HSSFDateUtil    日期
-        HSSFPrintSetup  打印
-        HSSFErrorConstants 错误信息表
-        */
-        FileInputStream in = new FileInputStream("D:/test.xlsx");
-        XSSFWorkbook workbook = new XSSFWorkbook(in);
-        in.close();
-        XSSFSheet sheet = workbook.getSheetAt(0);
-        XSSFRow row = sheet.getRow(0);
-        XSSFCell cell1 = row.getCell(0);
-        System.out.println(cell1.getStringCellValue());
-        sheet.shiftRows(1,4,1);
-        XSSFRow newRow = sheet.createRow(1);
-        CellCopyPolicy policy = new CellCopyPolicy();
-        newRow.copyRowFrom(row, policy);
-        XSSFCell cell = newRow.createCell(1);
-        cell.setCellType(CellType.STRING);
-        cell.setCellValue("测试单元格");
-        FileOutputStream out = new FileOutputStream("D:/test.xlsx");
-        workbook.write(out);
-        out.close();
-        return "Excel Test OK!";
+    /**
+     * 处理EXCEL表格，标记出已有初审公告的行。
+     * @return
+     * @throws IOException
+     */
+    @GetMapping("optExcel")
+    public String optExcel() throws IOException {
+        // 获取待处理的EXCEL文件集合
+        File srcDir = new File("D:\\TMSpider\\src");
+        File[] files = srcDir.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            String fileName = files[i].getName();
+            System.err.println("==========> 正在处理第【" + i + 1 + "】个文档 <==========");
+            FileInputStream in = new FileInputStream(files[i]);
+            XSSFWorkbook src = new XSSFWorkbook(in);
+            in.close();
+            /*
+            处理第一个SHEET
+            表格格式：道行为标题行; 第二列为注册号
+             */
+            XSSFSheet sheet = src.getSheetAt(0);
+            int count = 0;
+            System.out.println("待处理的数据共有【" + sheet.getLastRowNum() + "】条，开始处理……");
+            for (int j = 1; j < sheet.getLastRowNum(); j++) {
+                XSSFRow row = sheet.getRow(j);
+                try {
+                    String regNum = row.getCell(1).getStringCellValue();
+                    List<Announcement> annList = annService.getByRegNum(regNum);
+                    if (annList.size() > 0) {
+                        row.createCell(5).setCellValue("初审公告");
+                        count += 1;
+                        System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，查询到" + annList.size() + "条初审公告");
+                    } else {
+                        System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，未查询到初审公告");
+                    }
+                } catch (NullPointerException e) {
+                    System.err.println("正在处理第【" + j + "】行，此行为空！");
+                }
+            }
+            System.out.println("共查询到【" + count + "】条初审公告！");
+
+            // 输出目标文件
+            FileOutputStream out = new FileOutputStream("D:\\TMSpider\\tar\\" + fileName);
+            src.write(out);
+            out.close();
+
+            System.err.println("==========> 第【" + i + 1 + "】个文档处理完成 <==========");
+        }
+        return "Success!";
     }
 }

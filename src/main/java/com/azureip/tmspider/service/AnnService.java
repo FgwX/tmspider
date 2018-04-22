@@ -6,6 +6,8 @@ import com.azureip.tmspider.pojo.AnnoucementPojo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AnnService {
 
@@ -25,5 +27,9 @@ public class AnnService {
                 pojo.getTm_name()
         );
         return mapper.insert(ann);
+    }
+
+    public List<Announcement> getByRegNum(String regNum){
+        return mapper.getByRegNum(regNum);
     }
 }
