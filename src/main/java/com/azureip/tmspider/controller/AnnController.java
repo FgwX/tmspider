@@ -44,16 +44,16 @@ public class AnnController {
 
     /**
      * 查询公告总量
-     * @param p
+     * @param pojo
      * @return
      */
     @ResponseBody
     @RequestMapping(value = "importConfirm", method = RequestMethod.POST)
-    public GlobalResponse importConfirm(AnnQueryPojo p) {
+    public GlobalResponse importConfirm(AnnQueryPojo pojo) {
         GlobalResponse<AnnQueryPojo> response = new GlobalResponse<AnnQueryPojo>();
-        String s = gson.toJson(p);
+        String s = gson.toJson(pojo);
         System.out.println(s);
-        response.setResult(p);
+        response.setResult(pojo);
         return response;
     }
 
@@ -62,11 +62,15 @@ public class AnnController {
      * @return
      * @throws IOException
      */
-    @GetMapping("importFirstTrialAnns")
-    public String importFirstTrialAnns() throws IOException {
+    @PostMapping("importFirstTrialAnns")
+    public String importFirstTrialAnns(AnnQueryPojo p) throws IOException {
         CloseableHttpClient client = HttpClients.createDefault();
         RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(2000).setConnectTimeout(3000).setSocketTimeout(30000).build();
-        HttpPost countPost = new HttpPost("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html?page=1&rows=1&annNum=1596&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
+        StringBuffer countUrl = new StringBuffer("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html");
+        countUrl.append("?page=" + p.getPage()).append("&rows=" + p.getRows()).append("&annNum=" + p.getAnnNum()).append("&annType=" + p.getAnnType());
+        countUrl.append("&totalYOrN=true&appDateBegin=" + p.getAppDateBegin()).append("&appDateEnd=" + p.getAppDateEnd());
+        System.out.println("查询总数URL：" + countUrl.toString());
+        HttpPost countPost = new HttpPost(countUrl.toString());
         // countPost.setHeader("Accept","application/json, text/javascript, */*; q=0.01");
         // countPost.setHeader("Accept-Encoding","gzip, deflate");
         // countPost.setHeader("Accept-Language","zh-CN,zh;q=0.9,en;q=0.8");
@@ -84,10 +88,8 @@ public class AnnController {
         int successCount = 0;
         for (int i = 0; i < times; i++) {
             StringBuffer url = new StringBuffer("http://sbgg.saic.gov.cn:9080/tmann/annInfoView/annSearchDG.html");
-            url.append("?page=" + (i + 1));
-            url.append("&rows=" + PAGE_SIZE);
-            url.append("&annNum=" + 1596);
-            url.append("&annType=TMZCSQ&totalYOrN=true&appDateBegin=2017-06-01&appDateEnd=2017-07-31");
+            url.append("?page=" + (i + 1)).append("&rows=" + PAGE_SIZE).append("&annNum=" + p.getAnnNum()).append("&annType=" + p.getAnnType());
+            url.append("&totalYOrN=true&appDateBegin=" + p.getAppDateBegin()).append("&appDateEnd=" + p.getAppDateEnd());
             HttpPost post = new HttpPost(url.toString());
             post.setHeader("User-Agent", AGENT);
             post.setHeader("Connection", "keep-alive");
@@ -127,7 +129,7 @@ public class AnnController {
             in.close();
             /*
             处理第一个SHEET
-            表格格式：道行为标题行; 第二列为注册号
+            表格格式：首行为标题行; 第二列为注册号
              */
             XSSFSheet sheet = src.getSheetAt(0);
             int count = 0;
@@ -135,10 +137,10 @@ public class AnnController {
             for (int j = 1; j < sheet.getLastRowNum(); j++) {
                 XSSFRow row = sheet.getRow(j);
                 try {
-                    String regNum = row.getCell(1).getStringCellValue();
+                    String regNum = row.getCell(2).getStringCellValue();
                     List<Announcement> annList = annService.getByRegNum(regNum);
                     if (annList.size() > 0) {
-                        row.createCell(5).setCellValue("初审公告");
+                        row.createCell(7).setCellValue("初审公告");
                         count += 1;
                         System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，查询到" + annList.size() + "条初审公告");
                     } else {

@@ -7,7 +7,7 @@ public class AnnQueryPojo implements Serializable {
     public AnnQueryPojo() {
     }
 
-    public AnnQueryPojo(int page, int rows, int annNum, String annType, Date appDateBegin, Date appDateEnd) {
+    public AnnQueryPojo(int page, int rows, int annNum, String annType, String appDateBegin, String appDateEnd) {
         this.page = page;
         this.rows = rows;
         this.annNum = annNum;
@@ -21,8 +21,8 @@ public class AnnQueryPojo implements Serializable {
     private int annNum;
     private String annType;
     private boolean totalYOrN = true;
-    private Date appDateBegin;
-    private Date appDateEnd;
+    private String appDateBegin;
+    private String appDateEnd;
 
     public int getPage() {
         return page;
@@ -44,11 +44,11 @@ public class AnnQueryPojo implements Serializable {
         return totalYOrN;
     }
 
-    public Date getAppDateBegin() {
+    public String getAppDateBegin() {
         return appDateBegin;
     }
 
-    public Date getAppDateEnd() {
+    public String getAppDateEnd() {
         return appDateEnd;
     }
 
@@ -72,11 +72,11 @@ public class AnnQueryPojo implements Serializable {
         this.totalYOrN = totalYOrN;
     }
 
-    public void setAppDateBegin(Date appDateBegin) {
+    public void setAppDateBegin(String appDateBegin) {
         this.appDateBegin = appDateBegin;
     }
 
-    public void setAppDateEnd(Date appDateEnd) {
+    public void setAppDateEnd(String appDateEnd) {
         this.appDateEnd = appDateEnd;
     }
 }

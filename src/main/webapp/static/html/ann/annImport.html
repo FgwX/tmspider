@@ -3,21 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>初审公告导入 - TMSpider</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+    <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#submit").click(function () {
+                var data = $("#annImportForm").serializeArray();
+                var str = "即将导入第" + data[2].value + "期公告中" + data[4].value + "到" + data[5].value
+                    + "期间的初审的数据，是否继续？";
+                if (confirm(str)) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/ann/importFirstTrialAnns",
+                        data: data,
+                        success: function (msg) {
+                            alert("Data Saved!");
+                        }
+                    });
+                }
+            })
+        })
+    </script>
 </head>
 <body>
 <h4>初审公告导入</h4>
 <hr>
-<form id="annImportForm" action="/ann/importConfirm" method="post" >
-    <input name="p.page" type="number" value="1" style="display: none"/>
-    <input name="p.rows" type="number" value="1" style="display: none"/>
+<form id="annImportForm">
+    <input name="page" type="number" value="1" style="display: none"/>
+    <input name="rows" type="number" value="1" style="display: none"/>
 
-    公告期号：<input name="p.annNum" type="number"/><br>
-    公告类型：<select name="p.annType">
-        <option label="商标初审公告" value="TMZCSQ" selected/>
-    </select><br>
-    开始日期：<input name="p.appDateBegin" type="date" value="2018-01-01"/>
-    结束日期：<input name="p.appDateEnd" type="date" value="2018-02-02"/><br>
-    <input type="reset" value="重置表单"/>     <input type="submit" value="查询导入"/>
+    公告期号：<input name="annNum" type="number"/><br>
+    公告类型：<select name="annType">
+    <option label="商标初审公告" value="TMZCSQ" selected/>
+</select><br>
+    开始日期：<input name="appDateBegin" type="date" value="2017-08-01"/>
+    结束日期：<input name="appDateEnd" type="date" value="2018-08-31"/><br>
+    <input type="reset" value="重置表单"/> <input id="submit" type="button" value="查询导入"/>
 </form>
 </body>
 </html>
