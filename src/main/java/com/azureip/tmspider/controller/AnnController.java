@@ -44,6 +44,7 @@ public class AnnController {
 
     /**
      * 查询公告总量
+     *
      * @param pojo
      * @return
      */
@@ -59,6 +60,7 @@ public class AnnController {
 
     /**
      * 查询公告数据，并导入数据库。
+     *
      * @return
      * @throws IOException
      */
@@ -113,23 +115,25 @@ public class AnnController {
 
     /**
      * 处理EXCEL表格，标记出已有初审公告的行。
+     *
      * @return
      * @throws IOException
      */
     @GetMapping("optExcel")
-    public String optExcel() throws IOException {
+    public GlobalResponse<String> optExcel() throws IOException {
+        GlobalResponse<String> response = new GlobalResponse<>();
         // 获取待处理的EXCEL文件集合
         File srcDir = new File("D:\\TMSpider\\src");
         File[] files = srcDir.listFiles();
         for (int i = 0; i < files.length; i++) {
             String fileName = files[i].getName();
-            System.err.println("==========> 正在处理第【" + i + 1 + "】个文档 <==========");
+            System.err.println("==========> 正在处理第" + (i + 1) + "个文档，共" + files.length + "个：【" + fileName + "】<==========");
             FileInputStream in = new FileInputStream(files[i]);
             XSSFWorkbook src = new XSSFWorkbook(in);
             in.close();
             /*
             处理第一个SHEET
-            表格格式：首行为标题行; 第二列为注册号
+            表格格式：首行为标题行; 第C列为注册号，H列为公告状态
              */
             XSSFSheet sheet = src.getSheetAt(0);
             int count = 0;
@@ -143,9 +147,10 @@ public class AnnController {
                         row.createCell(7).setCellValue("初审公告");
                         count += 1;
                         System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，查询到" + annList.size() + "条初审公告");
-                    } else {
-                        System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，未查询到初审公告");
                     }
+                    // else {
+                    //     System.out.println("正在处理第【" + j + "】行，注册号[" + regNum + "]，未查询到初审公告");
+                    // }
                 } catch (NullPointerException e) {
                     System.err.println("正在处理第【" + j + "】行，此行为空！");
                 }
@@ -157,8 +162,11 @@ public class AnnController {
             src.write(out);
             out.close();
 
-            System.err.println("==========> 第【" + i + 1 + "】个文档处理完成 <==========");
+            System.err.println("==========> 【" + fileName + "】处理完成 <==========");
         }
-        return "Success!";
+
+        response.setStatus(GlobalResponse.SUCCESS);
+        response.setMessage("初审公告筛查完成，共处理" + files.length + "个文档。");
+        return response;
     }
 }

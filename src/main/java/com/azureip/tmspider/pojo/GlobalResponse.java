@@ -5,6 +5,9 @@ import java.util.List;
 
 public class GlobalResponse<T> implements Serializable {
 
+    public static final String SUCCESS = "S";
+    public static final String ERROR = "E";
+
     public GlobalResponse() {
     }
 
@@ -13,6 +16,7 @@ public class GlobalResponse<T> implements Serializable {
         this.message = message;
     }
 
+    // S - 成功；E - 失败。
     private String status;
     private String message;
     private T result;
