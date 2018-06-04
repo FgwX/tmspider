@@ -111,11 +111,7 @@ public class AnnoucementPojo implements Serializable {
     @Override
     public String toString() {
         return "AnnoucementPojo{" +
-                "id='" + id + '\'' +
-                ", page_no=" + page_no +
-                ", ann_type_code='" + ann_type_code + '\'' +
-                ", ann_type='" + ann_type + '\'' +
-                ", ann_num='" + ann_num + '\'' +
+                "ann_num='" + ann_num + '\'' +
                 ", ann_date=" + ann_date +
                 ", reg_name='" + reg_name + '\'' +
                 ", reg_num='" + reg_num + '\'' +
