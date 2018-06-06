@@ -1,12 +1,19 @@
 package com.azureip.tmspider.controller;
 
-import com.google.gson.Gson;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Date;
-
+@Controller
 public class TestController {
+
+    @GetMapping("test")
+    public String test(){
+        System.out.println("Hello Test!");
+        return "forward:index.html";
+    }
+
     public static void main(String[] args) {
 //        TestPojo pojo = new TestPojo("testName", 18);
 //        Gson gson = new Gson();

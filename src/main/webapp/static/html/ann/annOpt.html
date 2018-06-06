@@ -14,9 +14,9 @@
         // 通知方法
         function notify(title, body) {
             if (Notification.permission == "granted") {
-                var notification = new Notification("Notification测试-构造方法", {
+                var notification = new Notification(title, {
                     icon: "asset/image/notify_jay.jpg",
-                    body: "Notification测试-构造参数-body",
+                    body: body,
                     tag: 0,
                     renotify: false
                     //lang: "Simplify Chinese",
@@ -44,7 +44,6 @@
         }
 
         $(function () {
-
             $("#queryCount").click(function () {
                 if (!formCheck()) {
                     alert("请输入必填项！")
@@ -83,9 +82,11 @@
                         async: false,
                         success: function (resp) {
                             if (resp.status == "S") {
-                                alert("已成功导入第" + data[2].value + "期公告，共" + resp.result + "条数据！");
+                                // alert("已成功导入第" + data[2].value + "期公告，共" + resp.result + "条数据！");
+                                notify("初审数据导入成功","已成功导入第" + data[2].value + "期公告，共" + resp.result + "条数据！");
                             } else {
-                                alert("导入失败，原因如下：\n" + resp.message);
+                                // alert("导入失败，原因如下：\n" + resp.message);
+                                notify("初审数据导入失败","导入失败，原因如下：\n" + resp.message);
                             }
                         }
                     });
@@ -104,9 +105,11 @@
                                 for (var i = 0; i < resp.resultList.length; i++) {
                                     fileNames += (i + 1) + ".  " + resp.resultList[i] + "\n";
                                 }
-                                alert("已成功处理以下文档：\n" + fileNames);
+                                // alert("已成功处理以下文档：\n" + fileNames);
+                                notify("Excel表格处理完成","已成功处理以下文档：\n" + fileNames);
                             } else {
-                                alert("处理失败，原因如下：" + resp.message);
+                                // alert("处理失败，原因如下：" + resp.message);
+                                notify("Excel表格处理失败","处理失败，原因如下：\n" + resp.message);
                             }
                         }
                     });
